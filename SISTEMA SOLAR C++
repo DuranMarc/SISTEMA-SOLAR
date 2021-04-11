@@ -1,0 +1,461 @@
+
+
+#include <stdio.h>
+#include <math.h>
+#define PI 3.14159265358979323846
+
+//Funcions velocitat de x i y. AtenciÃ³. L'ordre per posar les variables a les funcions Ã©s el mateix. Exemple: Terra atreta pel Sol. velx(xS, xT, yS, yT, zS, zT);  vely(xS, xT, yS, yT, zS, zT)
+
+double velx(double a, double b, double c, double d, double e, double f){
+    return (a-b)/((sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f))));
+}
+
+
+
+double vely(double a, double b, double c, double d, double e, double f){
+    return (c-d)/((sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f))));
+}
+
+
+double velz(double a, double b, double c, double d, double e, double f){
+    return (e-f)/((sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f)))*(sqrt((a-b)*(a-b)+(c-d)*(c-d)+(e-f)*(e-f))));
+}
+
+
+
+int main(int argc, const char * argv[]) {
+    
+    
+    //#####################################################################################//
+    //############    RELACIÃ“ TEMPS REAL / TEMPS NORMALITZAT TRANSCORREGUT    #############//
+    //#####################################################################################//
+    
+    
+    double TempsTotal;
+    TempsTotal = 2;   //1 equival a 1 any terrestre, 365.26 dies
+    
+    double h; //step
+    h = 0.001;
+    
+    int nt;
+    nt = TempsTotal/h;
+    
+    
+    //######################################################################################//
+    //################  CONDICIONS INICIALS NORMALITZADES PER CADA ASTRE  ##################//
+    //######################################################################################//
+    
+    int N;  //Numero d'astres al nostre sistema
+    N=6;
+    
+    
+    double x[N], y[N], z[N], vx[N], vy[N], vz[N];
+    double xNew[N], yNew[N], zNew[N], vxNew[N], vyNew[N], vzNew[N];
+    
+    //Per les posicions de x i y: 1 = 1 AU = 149 597 870 700 m
+    //Per les velocitats vx i vy: 1 = 4.740470473 km/s
+    
+    //CONDICIONS INICIALS SOL (ASTRE 0)
+    x[0] = 0;
+    y[0] = 0;
+    z[0] = 0;
+    vx[0] = 0;
+    vy[0] = 0;
+    vz[0] = 0;
+    
+    //CONDICIONS INICIALS ASTRE 1 (MERCURI) (CONSIDEREM ES TROBA AL PERIHELI)
+    x[1] = -0.307504376;
+    y[1] = 0;
+    z[1] = 0;
+    vx[1] = 0;
+    vy[1] = 12.44180305;
+    vz[1] = 0;
+    
+    
+    //CONDICIONS INICIALS ASTRE 2 (VENUS) (CONSIDEREM ES TROBA AL PERIHELI)
+    x[2] = -0.718432684;
+    y[2] = 0;
+    z[2] = 0;
+    vx[2] = 0;
+    vy[2] = 7.43808292;
+    vz[2] = 0;
+    
+    
+    //CONDICIONS INICIALS ASTRE 3 (TERRA) (CONSIDEREM ES TROBA AL PERIHELI)
+    x[3] = -0.983249287;
+    y[3] = 0;
+    z[3] = 0;
+    vx[3] = 0;
+    vy[3] = 6.389661147;
+    vz[3] = 0;
+    
+    
+    //CONDICIONS INICIALS ASTRE 4 (MART) (CONSIDEREM ES TROBA AL PERIHELI)
+    x[4] = -1.381149335;
+    y[4] = 0;
+    z[4] = 0;
+    vx[4] = 0;
+    vy[4] = 5.590162443;
+    vz[2] = 0;
+    
+    //CONDICIONS INICIALS ASTRE 5 (JÃšPITER) (CONSIDEREM ES TROBA AL PERIHELI)
+    x[5] = -4.950083815;
+    y[5] = 0;
+    z[5] = 0;
+    vx[5] = 0;
+    vy[5] = 2.894227499;
+    vz[5] = 0;
+    
+
+    
+    
+    //si es volen posar mÃ©s astres, es definieix la seva posiciÃ³ i  velocitat inicial, es canvia la N (numero d'astres) i es defineix la seva massa.
+    
+    
+    //#####################################################################################//
+    //############  CONSTANT DE NORMALITZACIÃ“ C sub j = a[] + MASSES DELS ASTRES  ##############//
+    //#####################################################################################//
+    
+    
+    //mAstre = x (* vegades mTerraReal). mTerraReal = 5.9724*10^24
+    int i;
+    double a[N];
+    double  m[N];
+    
+    m[0] = 333000.0;        //mSol
+    m[1] = 0.0553;          //mMercuri
+    m[2] = 0.815;           //mVenus
+    m[3] = 1.0;             //mTerra
+    m[4] = 0.107;           //mMart
+    m[5] = 317.83;          //mJupiter
+    
+    
+    
+    for (i=0; i<=N-1; i++) {
+        a[i] = (4*PI*PI)*(m[i]/m[0]);
+    }
+    
+    
+    //#####################################################################################//
+    
+    //Varibales per trobar energies i moments angulars
+    
+    double L[N], E[N];
+    double Ec[N], Ep[N];
+    double sumEp1[N], sumEp2[N];
+    double mTerraReal = 5.9724*pow(10,24);
+    double d= 149597870700; //m = 1 AU
+    double T = 31557600; //s = 365.26 dies
+    double G = (6.67408*pow(10,-11));    //m^3/(kg*s^2)
+    
+    
+    
+    //#####################################################################################//
+    //###########################  APLIQUEM RK4 A CADA PLANETA  ###########################//
+    //#####################################################################################//
+    
+    
+    int j,k,l;
+    double sum1K1vx[N], sum2K1vx[N], sum1K1vy[N], sum2K1vy[N], sum1K1vz[N], sum2K1vz[N];
+    double sum1K2vx[N], sum2K2vx[N], sum1K2vy[N], sum2K2vy[N], sum1K2vz[N], sum2K2vz[N];
+    double sum1K3vx[N], sum2K3vx[N], sum1K3vy[N], sum2K3vy[N], sum1K3vz[N], sum2K3vz[N];
+    double sum1K4vx[N], sum2K4vx[N], sum1K4vy[N], sum2K4vy[N], sum1K4vz[N], sum2K4vz[N];
+    
+    
+    double K1x[N], K1y[N], K1z[N], K1vx[N], K1vy[N], K1vz[N];
+    double K2x[N], K2y[N], K2z[N], K2vx[N], K2vy[N], K2vz[N];
+    double K3x[N], K3y[N], K3z[N], K3vx[N], K3vy[N], K3vz[N];
+    double K4x[N], K4y[N], K4z[N], K4vx[N], K4vy[N], K4vz[N];
+    
+    FILE *output[N];
+    char buffer[100];
+    
+    
+    for (i=0; i<=nt-2; i++) {
+        
+        for (l=0; l<=N-1; l++) {
+            sum1K1vx[l] = 0;
+            sum2K1vx[l] = 0;
+            sum1K1vy[l] = 0;
+            sum2K1vy[l] = 0;
+            sum1K1vz[l] = 0;
+            sum2K1vz[l] = 0;
+            
+            sum1K2vx[l] = 0;
+            sum2K2vx[l] = 0;
+            sum1K2vy[l] = 0;
+            sum2K2vy[l] = 0;
+            sum1K2vz[l] = 0;
+            sum2K2vz[l] = 0;
+            
+            sum1K3vx[l] = 0;
+            sum2K3vx[l] = 0;
+            sum1K3vy[l] = 0;
+            sum2K3vy[l] = 0;
+            sum1K3vz[l] = 0;
+            sum2K3vz[l] = 0;
+            
+            sum1K4vx[l] = 0;
+            sum2K4vx[l] = 0;
+            sum1K4vy[l] = 0;
+            sum2K4vy[l] = 0;
+            sum1K4vz[l] = 0;
+            sum2K4vz[l] = 0;
+            
+            sumEp1[l] = 0;
+            sumEp2[l] = 0;
+        }
+        
+        //################################################################//
+        //###################            K1            ###################//
+        //################################################################//
+        
+        for (j=0; j<=N-1; j++) {
+            K1x[j] = vx[j];
+            K1y[j] = vy[j];
+            K1z[j] = vz[j];
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K1vx[j] = sum1K1vx[j] + a[k]*velx(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K1vx[j] = sum2K1vx[j] + a[k]*velx(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            K1vx[j] = sum1K1vx[j] + sum2K1vx[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K1vy[j] = sum1K1vy[j] + a[k]*vely(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K1vy[j] = sum2K1vy[j] + a[k]*vely(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            K1vy[j] = sum1K1vy[j] + sum2K1vy[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K1vz[j] = sum1K1vz[j] + a[k]*velz(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K1vz[j] = sum2K1vz[j] + a[k]*velz(x[k], x[j], y[k] , y[j], z[k], z[j]);
+            }
+            K1vz[j] = sum1K1vz[j] + sum2K1vz[j];
+            
+        }
+        
+        //################################################################//
+        //###################            K2            ###################//
+        //################################################################//
+    
+        for (j=0; j<=N-1; j++) {
+            K2x[j] = vx[j] + (h/2)*K1x[j];
+            K2y[j] = vy[j] + (h/2)*K1y[j];
+            K2z[j] = vz[j] + (h/2)*K1z[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K2vx[j] = sum1K2vx[j] + a[k]*velx(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K2vx[j] = sum2K2vx[j] + a[k]*velx(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            K2vx[j] = sum1K2vx[j] + sum2K2vx[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K2vy[j] = sum1K2vy[j] + a[k]*vely(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K2vy[j] = sum2K2vy[j] + a[k]*vely(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            K2vy[j] = sum1K2vy[j] + sum2K2vy[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K2vz[j] = sum1K2vz[j] + a[k]*velz(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K2vz[j] = sum2K2vz[j] + a[k]*velz(x[k] + (h/2)*K1x[k], x[j] + (h/2)*K1x[j], y[k] + (h/2)*K1y[k], y[j] + (h/2)*K1y[j], z[k] + (h/2)*K1z[k], z[j] + (h/2)*K1z[j]);
+            }
+            K2vz[j] = sum1K2vz[j] + sum2K2vz[j];
+        }
+        
+        
+        //################################################################//
+        //###################            K3            ###################//
+        //################################################################//
+        
+        for (j=0; j<=N-1; j++) {
+            K3x[j] = vx[j] + (h/2)*K2x[j];
+            K3y[j] = vy[j] + (h/2)*K2y[j];
+            K3z[j] = vz[j] + (h/2)*K2z[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K3vx[j] = sum1K3vx[j] + a[k]*velx(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K3vx[j] = sum2K3vx[j] + a[k]*velx(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            K3vx[j] = sum1K3vx[j] + sum2K3vx[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K3vy[j] = sum1K3vy[j] + a[k]*vely(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K3vy[j] = sum2K3vy[j] + a[k]*vely(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            K3vy[j] = sum1K3vy[j] + sum2K3vy[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K3vz[j] = sum1K3vz[j] + a[k]*velz(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum2K3vz[j] = sum2K3vz[j] + a[k]*velz(x[k] + (h/2)*K2x[k], x[j] + (h/2)*K2x[j], y[k] + (h/2)*K2y[k], y[j] + (h/2)*K2y[j], z[k] + (h/2)*K2z[k], z[j] + (h/2)*K2z[j]);
+            }
+            K3vz[j] = sum1K3vz[j] + sum2K3vz[j];
+        }
+        
+        
+        //################################################################//
+        //###################            K4            ###################//
+        //################################################################//
+        
+        for (j=0; j<=N-1; j++) {
+            K4x[j] = vx[j] + (h)*K3x[j];
+            K4y[j] = vy[j] + (h)*K3y[j];
+            K4z[j] = vz[j] + (h)*K3z[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K4vx[j] = sum1K4vx[j] + a[k]*velx(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum1K4vx[j] = sum1K4vx[j] + a[k]*velx(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            K4vx[j] = sum1K4vx[j] + sum2K4vx[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K4vy[j] = sum1K4vy[j] + a[k]*vely(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum1K4vy[j] = sum1K4vy[j] + a[k]*vely(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            K4vy[j] = sum1K4vy[j] + sum2K4vy[j];
+            
+            
+            
+            for (k=0; k<j; k++) {
+                sum1K4vz[j] = sum1K4vz[j] + a[k]*velz(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sum1K4vz[j] = sum1K4vz[j] + a[k]*velz(x[k] + (h)*K3x[k], x[j] + (h)*K3x[j], y[k] + (h)*K3y[k], y[j] + (h)*K3y[j], z[k] + (h)*K3z[k], z[j] + (h)*K3z[j] );
+            }
+            K4vz[j] = sum1K4vz[j] + sum2K4vz[j];
+        }
+        
+        
+        //##################################################################//
+        //#####     POSICIONS I VELOCITATS UN INSTANT MÃ‰S ENDAVANT     #####//
+        //##################################################################//
+        
+        for (j=0; j<=N-1; j++) {
+            xNew[j] = x[j] + (h/6)*(K1x[j] + 2*K2x[j] + 2*K3x[j] + K4x[j]);
+            yNew[j] = y[j] + (h/6)*(K1y[j] + 2*K2y[j] + 2*K3y[j] + K4y[j]);
+            zNew[j] = z[j] + (h/6)*(K1z[j] + 2*K2z[j] + 2*K3z[j] + K4z[j]);
+            
+            vxNew[j] = vx[j] + (h/6)*(K1vx[j] + 2*K2vx[j] + 2*K3vx[j] + K4vx[j]);
+            vyNew[j] = vy[j] + (h/6)*(K1vy[j] + 2*K2vy[j] + 2*K3vy[j] + K4vy[j]);
+            vzNew[j] = vz[j] + (h/6)*(K1vz[j] + 2*K2vz[j] + 2*K3vz[j] + K4vz[j]);
+        }
+        
+        
+        //############################################################################//
+        //##########    IMPRIMIM ELS VALORS DE LES POSICIONS NEW A UN TXT   ##########//
+        //############################################################################//
+        
+        
+        for (j=0; j<=N-1; j++) {
+            sprintf(buffer, "/Users/utilisateur/Desktop/FÍSICA/3r/1R SEMESTRE/MÈTODES NUMÈRICS 2/SIMULACIÓ 2/Astre%d.txt",j);
+            output[j] = fopen(buffer, "a");
+            fprintf(output[j], "%lf %lf %lf\n",x[j],y[j],z[j]);
+            fclose(output[j]);
+        }
+        
+        
+        
+        //############################################################################//
+        //###########      ENERGIA GRAVITATÃ’RIA + MÃ’DUL MOMENT ANGULAR     ###########//
+        //############################################################################//
+        
+        
+        //Energia
+        for (j=0; j<=N-1; j++) {
+            Ec[j] = (1/2)*(m[j]*mTerraReal)*(vxNew[j]*vxNew[j] + vyNew[j]*vyNew[j] + vzNew[j]*vzNew[j])*((d/T)*(d/T));
+            
+            for (k=0; k<j; k++) {
+                sumEp1[j] = sumEp1[j] + (-G*m[j]*m[k])*(mTerraReal*mTerraReal)/(d*sqrt(((xNew[k]-xNew[j])*(xNew[k]-xNew[j])) + ((yNew[k]-yNew[j])*(yNew[k]-yNew[j])) + ((zNew[k]-zNew[j])*(zNew[k]-zNew[j]))));
+            }
+            for (k=j+1; k<=N-1; k++) {
+                sumEp2[j] = sumEp2[j] + (-G*m[j]*m[k])*(mTerraReal*mTerraReal)/(d*sqrt(((xNew[k]-xNew[j])*(xNew[k]-xNew[j])) + ((yNew[k]-yNew[j])*(yNew[k]-yNew[j])) + ((zNew[k]-zNew[j])*(zNew[k]-zNew[j]))));
+            }
+            
+            Ep[j] = sumEp1[j] + sumEp2[j];
+            E[j] = Ec[j] + Ep[j];
+            
+            //unitats energia en J
+            
+            sprintf(buffer, "/Users/utilisateur/Desktop/FÍSICA/3r/1R SEMESTRE/MÈTODES NUMÈRICS 2/SIMULACIÓ 2/Energia%d.txt",j);
+            output[j] = fopen(buffer, "a");
+            fprintf(output[j], "%d %lf\n",i,E[j]);
+            fclose(output[j]);
+        }
+        
+        
+        //Moment  angular
+        for (j=0; j<=N-1; j++) {
+            L[j] = mTerraReal*(d*d/T)*sqrt(m[j]*((xNew[j]*vyNew[j]-yNew[j]*vxNew[j])*(xNew[j]*vyNew[j]-yNew[j]*vxNew[j]) + (xNew[j]*vzNew[j]-zNew[j]*vxNew[j])*(xNew[j]*vzNew[j]-zNew[j]*vxNew[j]) + (xNew[j]*vyNew[j]-yNew[j]*vxNew[j])*(xNew[j]*vyNew[j]-yNew[j]*vxNew[j])));
+            
+            
+            //unitats de L: kg*m^2/s
+            
+            sprintf(buffer, "/Users/utilisateur/Desktop/FÍSICA/3r/1R SEMESTRE/MÈTODES NUMÈRICS 2/SIMULACIÓ 2/MomentAngular%d.txt",j);
+            output[j] = fopen(buffer, "a");
+            fprintf(output[j], "%d %lf\n",i,L[j]);
+            fclose(output[j]);
+            
+        }
+        
+        
+        
+        //##################################################################//
+        //#######    OLD = NEW PER SEGUIR FENT PASSOS EN EL TEMPS    #######//
+        //##################################################################//
+        
+        for (j=0; j<=N-1; j++) {
+            x[j] = xNew[j];
+            y[j] = yNew[j];
+            z[j] = zNew[j];
+            
+            vx[j] = vxNew[j];
+            vy[j] = vyNew[j];
+            vz[j] = vzNew[j];
+        }
+    }
+    
+    return 0;
+}
